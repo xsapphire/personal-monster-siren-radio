@@ -1,93 +1,103 @@
-'use client'
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+"use client";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { AlbumListItem, SongListItem } from "./type";
 
-const LOCAL_STORAGE_KEY = 'custonm-arknights-playlist';
+const LOCAL_STORAGE_KEY = "custonm-arknights-playlist";
 
 export type MyPlayListItem = {
-    cid: string;
-    createDateTime: Date;
-}
+  cid: string;
+  createDateTime: Date;
+};
 
 type SongContextType = {
-    allSongs: SongListItem[];   
-    allAlbums: AlbumListItem[];
-    myPlaylist: MyPlayListItem[];
+  allSongs: SongListItem[];
+  allAlbums: AlbumListItem[];
+  myPlaylist: MyPlayListItem[];
 
-    addToPlaylist: (cid: string) => void;
-    removeFromPlaylist: (cid: string) => void;
-    shufflePlaylist: () => void;
+  addToPlaylist: (cid: string) => void;
+  removeFromPlaylist: (cid: string) => void;
+  shufflePlaylist: () => void;
 
-    clearPlaylist: () => void;
+  clearPlaylist: () => void;
+  updateTheWholePlaylist: (newPlaylist: MyPlayListItem[]) => void;
 
-    configPlaylistOpen: boolean;
-    toggleConfigPlaylistModal: () => void;
-}
+  configPlaylistOpen: boolean;
+  toggleConfigPlaylistModal: () => void;
+};
 
 const SongContext = createContext<SongContextType | null>(null);
 
 export const SongContextProvider = ({ children }: { children: ReactNode }) => {
-    const [playlist, setPlaylist] = useState<MyPlayListItem[]>([]);
-    const [configPlaylistOpen, setConfigPlaylistOpen] = useState<boolean>(false);
+  const [playlist, setPlaylist] = useState<MyPlayListItem[]>([]);
+  const [configPlaylistOpen, setConfigPlaylistOpen] = useState<boolean>(false);
 
-    const [allSongs, setAllSongs] = useState<SongListItem[]>([]);
-    const [allAlbums, setAllAlbums] = useState<AlbumListItem[]>([]);
+  const [allSongs, setAllSongs] = useState<SongListItem[]>([]);
+  const [allAlbums, setAllAlbums] = useState<AlbumListItem[]>([]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const response = await fetch('/api/list');
-            const data = await response.json();
-            setAllSongs(data.songs);
-            setAllAlbums(data.albums);
-        };
-        fetchData();
-    }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch("/api/list");
+      const data = await response.json();
+      setAllSongs(data.songs);
+      setAllAlbums(data.albums);
+    };
+    fetchData();
+  }, []);
 
-    useEffect(() => {
-        fetchSavedPlaylist();
-    }, []);
+  useEffect(() => {
+    fetchSavedPlaylist();
+  }, []);
 
-    useEffect(() => {
-        if(playlist.length > 0) {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(playlist));
-            return;
-        }
-
-        clearPlaylist();
-    }, [playlist]);
-
-    const fetchSavedPlaylist = () => {
-        const savedPlaylist = localStorage.getItem(LOCAL_STORAGE_KEY);
-        setPlaylist(JSON.parse(savedPlaylist || '[]'));
+  useEffect(() => {
+    if (playlist.length > 0) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(playlist));
+      return;
     }
 
-    const clearPlaylist = () => {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-    }
+    clearPlaylist();
+  }, [playlist]);
 
-    const addToPlaylist = (cid: string) => {
-        setPlaylist((prev) => [
-            ...prev, 
-            { cid, createDateTime: new Date() }
-        ]);
-    }
+  const fetchSavedPlaylist = () => {
+    const savedPlaylist = localStorage.getItem(LOCAL_STORAGE_KEY);
+    setPlaylist(JSON.parse(savedPlaylist || "[]"));
+  };
 
-    const removeFromPlaylist = (cid: string) => {
-        setPlaylist((prev) => prev.filter(item => item.cid !== cid));
-    }
+  const clearPlaylist = () => {
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+  };
 
-    const shufflePlaylist = () => {
-        setPlaylist((prev) => {
-            const shuffled = [...prev].sort(() => Math.random() - 0.5);
-            return shuffled;
-        });
-    }
+  const addToPlaylist = (cid: string) => {
+    setPlaylist((prev) => [...prev, { cid, createDateTime: new Date() }]);
+  };
 
-    const toggleConfigPlaylistModal = () => {
-        setConfigPlaylistOpen(prev => !prev);
-    }
+  const removeFromPlaylist = (cid: string) => {
+    setPlaylist((prev) => prev.filter((item) => item.cid !== cid));
+  };
 
-    return <SongContext.Provider value={{
+  const shufflePlaylist = () => {
+    setPlaylist((prev) => {
+      const shuffled = [...prev].sort(() => Math.random() - 0.5);
+      return shuffled;
+    });
+  };
+
+  const toggleConfigPlaylistModal = () => {
+    setConfigPlaylistOpen((prev) => !prev);
+  };
+
+  const updateTheWholePlaylist = (newPlaylist: MyPlayListItem[]) => {
+    setPlaylist(newPlaylist);
+  };
+
+  return (
+    <SongContext.Provider
+      value={{
         allSongs,
         allAlbums,
         myPlaylist: playlist,
@@ -95,17 +105,20 @@ export const SongContextProvider = ({ children }: { children: ReactNode }) => {
         removeFromPlaylist,
         shufflePlaylist,
         clearPlaylist,
+        updateTheWholePlaylist,
         configPlaylistOpen,
         toggleConfigPlaylistModal,
-    }}>
-        {children}
-    </SongContext.Provider>;
-}
+      }}
+    >
+      {children}
+    </SongContext.Provider>
+  );
+};
 
 export const usePlaylist = () => {
-    const context = useContext(SongContext);
-    if (!context) {
-      throw new Error('usePlaylist must be used within a SongContextProvider');
-    }
-    return context;
+  const context = useContext(SongContext);
+  if (!context) {
+    throw new Error("usePlaylist must be used within a SongContextProvider");
+  }
+  return context;
 };

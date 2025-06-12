@@ -1,12 +1,11 @@
 "use client";
 
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement } from "react";
 import { FiMenu, FiPlus, FiShuffle, FiTrash } from "react-icons/fi";
 import { IconButton, PrimaryButton } from "../components/Button";
 import { Dropdown } from "../components/Dropdown";
 import { FlexBox } from "../components/FlexBox";
 import { usePlaylist } from "../SongContext";
-import { MyPlayListItem } from "../type";
 
 export const MyPlayList = (): ReactElement => {
   const {
@@ -16,6 +15,7 @@ export const MyPlayList = (): ReactElement => {
     shufflePlaylist,
     toggleConfigPlaylistModal,
     clearPlaylist,
+    updateTheWholePlaylist,
   } = usePlaylist();
 
   const exportPlaylist = () => {
@@ -28,12 +28,6 @@ export const MyPlayList = (): ReactElement => {
     document.body.appendChild(element);
     element.click();
   };
-
-  const [_myPlaylist, _setMyPlaylist] = useState<MyPlayListItem[]>(myPlaylist);
-
-  useEffect(() => {
-    _setMyPlaylist(myPlaylist);
-  }, [myPlaylist]);
 
   return (
     <div style={{ width: "50%", padding: "16px" }}>
@@ -59,7 +53,7 @@ export const MyPlayList = (): ReactElement => {
                 value: "clear",
                 onClick: () => {
                   clearPlaylist();
-                  _setMyPlaylist([]);
+                  updateTheWholePlaylist([]);
                 },
               },
               {
@@ -68,7 +62,7 @@ export const MyPlayList = (): ReactElement => {
                 onClick: async () => {
                   const recommendedList = await fetch("/recommend.json");
                   const recommendedData = await recommendedList.json();
-                  _setMyPlaylist(recommendedData);
+                  updateTheWholePlaylist(recommendedData);
                 },
               },
             ]}
@@ -78,9 +72,9 @@ export const MyPlayList = (): ReactElement => {
         </FlexBox>
       </FlexBox>
 
-      {_myPlaylist.length > 0 ? (
+      {myPlaylist.length > 0 ? (
         <FlexBox $center="y" $direction="column" style={{ padding: "16px" }}>
-          {_myPlaylist.map((playlistItem) => {
+          {myPlaylist.map((playlistItem) => {
             const songName = allSongs?.find(
               (song) => song.cid === playlistItem.cid
             )?.name;
