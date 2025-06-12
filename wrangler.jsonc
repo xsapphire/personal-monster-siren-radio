@@ -1,0 +1,11 @@
+{
+  "name": "personal-monster-siren-radio",
+  "main": "src/app/page.tsx",
+  "compatibility_date": "2022-07-12",
+  "kv_namespaces": [
+    {
+      "binding": "<MY_NAMESPACE>",
+      "id": "<KV_ID>"
+    }
+  ],
+}
