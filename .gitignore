@@ -4,7 +4,6 @@
 /node_modules
 /.pnp
 .pnp.*
-.open-next/*
 .yarn/*
 !.yarn/patches
 !.yarn/plugins

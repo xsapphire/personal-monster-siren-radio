@@ -1,5 +1,5 @@
 "use client";
-// import Image from "next/image";
+import Image from "next/image";
 import { ReactElement, useEffect, useRef, useState } from "react";
 import { FiAirplay, FiPause, FiPlay, FiRewind } from "react-icons/fi";
 import { usePlaylist } from "../SongContext";
@@ -7,11 +7,11 @@ import { IconButton } from "../components/Button";
 import { FlexBox } from "../components/FlexBox";
 
 export const Player = (): ReactElement => {
-  const { allSongs, /* allAlbums, */ myPlaylist } = usePlaylist();
+  const { allSongs, allAlbums, myPlaylist } = usePlaylist();
 
   const [playingIndex, setPlayingIndex] = useState<number>(0);
   const [curAudioSrc, setCurAudioSrc] = useState<string>("");
-  // const [albumCoverUrl, setAlbumCoverUrl] = useState<string>("");
+  const [albumCoverUrl, setAlbumCoverUrl] = useState<string>("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [hasPaused, setHasPaused] = useState<boolean>(false);
 
@@ -22,10 +22,10 @@ export const Player = (): ReactElement => {
       );
       const detail = await songDetail.json();
 
-      /* setAlbumCoverUrl(
+      setAlbumCoverUrl(
         allAlbums?.find((album) => album.cid === detail.albumCid)?.coverUrl ||
           ""
-      ); */
+      );
       setCurAudioSrc(detail.sourceUrl);
     };
 
@@ -46,7 +46,14 @@ export const Player = (): ReactElement => {
     <div style={{ width: "50%" }}>
       <h2 style={{ padding: "16px 32px" }}>Now Playing</h2>
       <FlexBox style={{ padding: "16px" }} $center="xy" $direction="column">
-        {/* albumCoverUrl ? <Image alt='cover' src={albumCoverUrl} width={300} height={300}></Image> : null */}
+        {albumCoverUrl ? (
+          <Image
+            alt="cover"
+            src={albumCoverUrl}
+            width={300}
+            height={300}
+          ></Image>
+        ) : null}
         <h3>
           {playingIndex > 0
             ? allSongs?.find(
