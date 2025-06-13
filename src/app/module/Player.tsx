@@ -2,14 +2,14 @@
 import Image from "next/image";
 import { ReactElement, useEffect, useRef, useState } from "react";
 import { FiAirplay, FiPause, FiPlay, FiRewind } from "react-icons/fi";
-import { usePlaylist } from "../SongContext";
 import { IconButton } from "../components/Button";
 import { FlexBox } from "../components/FlexBox";
+import { usePlaylist } from "../context/SongContext";
 
 export const Player = (): ReactElement => {
-  const { allSongs, allAlbums, myPlaylist } = usePlaylist();
+  const { allSongs, allAlbums, myPlaylist, playingIndex, setPlayingIndex } =
+    usePlaylist();
 
-  const [playingIndex, setPlayingIndex] = useState<number>(0);
   const [curAudioSrc, setCurAudioSrc] = useState<string>("");
   const [albumCoverUrl, setAlbumCoverUrl] = useState<string>("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -43,78 +43,76 @@ export const Player = (): ReactElement => {
   }, [audioRef.current, curAudioSrc]);
 
   return (
-    <div style={{ width: "50%" }}>
+    <FlexBox
+      style={{ width: "50%", height: "100%" }}
+      $center="xy"
+      $direction="column"
+    >
       <h2 style={{ padding: "16px 32px" }}>Now Playing</h2>
-      <FlexBox style={{ padding: "16px" }} $center="xy" $direction="column">
-        {albumCoverUrl ? (
-          <Image
-            alt="cover"
-            src={albumCoverUrl}
-            width={300}
-            height={300}
-          ></Image>
-        ) : null}
-        <h3>
-          {playingIndex > 0
-            ? allSongs?.find(
-                (song: { cid: string; name: string }) =>
-                  song.cid === myPlaylist[playingIndex - 1].cid
-              )?.name
-            : "None"}
-        </h3>
 
-        {curAudioSrc && (
-          <audio
-            ref={audioRef}
-            src={curAudioSrc}
-            onEnded={() => {
-              if (playingIndex === myPlaylist.length) {
-                console.log("No more songs to play");
-                return;
-              }
+      {albumCoverUrl ? (
+        <Image alt="cover" src={albumCoverUrl} width={300} height={300}></Image>
+      ) : null}
+      <h3 style={{ marginTop: "8px" }}>
+        {playingIndex > 0
+          ? allSongs?.find(
+              (song: { cid: string; name: string }) =>
+                song.cid === myPlaylist[playingIndex - 1].cid
+            )?.name
+          : "None"}
+      </h3>
 
-              console.log("Song ended");
-              audioRef.current?.pause();
-              setPlayingIndex((prevIndex) => prevIndex + 1);
-            }}
-          />
-        )}
+      {curAudioSrc && (
+        <audio
+          ref={audioRef}
+          src={curAudioSrc}
+          onEnded={() => {
+            if (playingIndex === myPlaylist.length) {
+              console.log("No more songs to play");
+              return;
+            }
 
-        <FlexBox $spaceBetween>
-          <IconButton
-            onClick={() => {
-              setPlayingIndex(1);
-            }}
-            disabled={playingIndex > 0}
-            icon={<FiAirplay />}
-            title="Play List"
-          />
+            console.log("Song ended");
+            audioRef.current?.pause();
+            setPlayingIndex((prevIndex) => prevIndex + 1);
+          }}
+        />
+      )}
 
-          <IconButton
-            onClick={() => {
-              if (hasPaused) {
-                audioRef.current?.play();
-                setHasPaused(false);
-                return;
-              }
+      <FlexBox $spaceBetween style={{ marginTop: "16px" }}>
+        <IconButton
+          onClick={() => {
+            setPlayingIndex(1);
+          }}
+          disabled={playingIndex > 0}
+          icon={<FiAirplay />}
+          title="Play List"
+        />
 
-              audioRef.current?.pause();
-              setHasPaused(true);
-            }}
-            icon={hasPaused ? <FiPlay /> : <FiPause />}
-            title={hasPaused ? "Resume" : "Pause"}
-          />
+        <IconButton
+          onClick={() => {
+            if (hasPaused) {
+              audioRef.current?.play();
+              setHasPaused(false);
+              return;
+            }
 
-          <IconButton
-            onClick={() => {
-              setPlayingIndex(0);
-              setCurAudioSrc("");
-            }}
-            icon={<FiRewind />}
-            title="Start Over"
-          />
-        </FlexBox>
+            audioRef.current?.pause();
+            setHasPaused(true);
+          }}
+          icon={hasPaused ? <FiPlay /> : <FiPause />}
+          title={hasPaused ? "Resume" : "Pause"}
+        />
+
+        <IconButton
+          onClick={() => {
+            setPlayingIndex(0);
+            setCurAudioSrc("");
+          }}
+          icon={<FiRewind />}
+          title="Start Over"
+        />
       </FlexBox>
-    </div>
+    </FlexBox>
   );
 };

@@ -1,11 +1,14 @@
 "use client";
 
-import { ReactElement } from "react";
+import { ReactElement, useState } from "react";
 import { FiMenu, FiPlus, FiShuffle, FiTrash } from "react-icons/fi";
 import { IconButton, PrimaryButton } from "../components/Button";
 import { Dropdown } from "../components/Dropdown";
 import { FlexBox } from "../components/FlexBox";
-import { usePlaylist } from "../SongContext";
+import { Modal } from "../components/Modal";
+import { usePlaylist } from "../context/SongContext";
+import { useTheme } from "../context/ThemeContext";
+import { themeColors } from "../themeColors";
 
 export const MyPlayList = (): ReactElement => {
   const {
@@ -16,7 +19,12 @@ export const MyPlayList = (): ReactElement => {
     toggleConfigPlaylistModal,
     clearPlaylist,
     updateTheWholePlaylist,
+    playingIndex,
+    isLoading,
   } = usePlaylist();
+
+  const { selectedTheme } = useTheme();
+  const [openModal, setOpenModal] = useState<boolean>(false);
 
   const exportPlaylist = () => {
     const element = document.createElement("a");
@@ -29,8 +37,27 @@ export const MyPlayList = (): ReactElement => {
     element.click();
   };
 
+  if (isLoading) {
+    return (
+      <FlexBox
+        $center="xy"
+        style={{ width: "50%", height: "calc(100vh - 50px)" }}
+      >
+        <p>Loading song data...</p>
+      </FlexBox>
+    );
+  }
+
   return (
-    <div style={{ width: "50%", padding: "16px" }}>
+    <div
+      style={{ width: "50%", padding: "16px", height: "calc(100vh - 50px)" }}
+    >
+      {openModal && (
+        <Modal title="Import Playlist" onClose={() => setOpenModal(false)}>
+          <p>Select a JSON file</p>
+        </Modal>
+      )}
+
       <FlexBox $spaceBetween $center="y" style={{ padding: "32px 16px" }}>
         <h2>My Playlist</h2>
         <FlexBox>
@@ -41,7 +68,9 @@ export const MyPlayList = (): ReactElement => {
               {
                 label: "Import a list",
                 value: "import",
-                onClick: () => console.log("Import a list clicked"),
+                onClick: () => {
+                  setOpenModal(true);
+                },
               },
               {
                 label: "Export my list",
@@ -73,8 +102,16 @@ export const MyPlayList = (): ReactElement => {
       </FlexBox>
 
       {myPlaylist.length > 0 ? (
-        <FlexBox $center="y" $direction="column" style={{ padding: "16px" }}>
-          {myPlaylist.map((playlistItem) => {
+        <FlexBox
+          $center="y"
+          $direction="column"
+          style={{
+            padding: "16px",
+            height: "calc(100% - 104px)",
+            overflowY: "auto",
+          }}
+        >
+          {myPlaylist.map((playlistItem, index) => {
             const songName = allSongs?.find(
               (song) => song.cid === playlistItem.cid
             )?.name;
@@ -84,8 +121,12 @@ export const MyPlayList = (): ReactElement => {
                 style={{
                   width: "100%",
                   padding: "8px 16px",
-                  border: "1px solid #fff",
+                  border: `1px solid ${themeColors[selectedTheme].border}`,
                   borderRadius: "4px",
+                  backgroundColor:
+                    index === playingIndex - 1
+                      ? themeColors[selectedTheme].active
+                      : "transparent",
                 }}
                 $center="y"
                 $spaceBetween

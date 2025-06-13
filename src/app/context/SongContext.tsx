@@ -1,12 +1,14 @@
 "use client";
 import {
   createContext,
+  Dispatch,
   ReactNode,
+  SetStateAction,
   useContext,
   useEffect,
   useState,
 } from "react";
-import { AlbumListItem, SongListItem } from "./type";
+import { AlbumListItem, SongListItem } from "../type";
 
 const LOCAL_STORAGE_KEY = "custonm-arknights-playlist";
 
@@ -29,6 +31,11 @@ type SongContextType = {
 
   configPlaylistOpen: boolean;
   toggleConfigPlaylistModal: () => void;
+
+  playingIndex: number;
+  setPlayingIndex: Dispatch<SetStateAction<number>>;
+
+  isLoading: boolean;
 };
 
 const SongContext = createContext<SongContextType | null>(null);
@@ -39,6 +46,9 @@ export const SongContextProvider = ({ children }: { children: ReactNode }) => {
 
   const [allSongs, setAllSongs] = useState<SongListItem[]>([]);
   const [allAlbums, setAllAlbums] = useState<AlbumListItem[]>([]);
+  const [playingIndex, setPlayingIndex] = useState<number>(0);
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,6 +56,7 @@ export const SongContextProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
       setAllSongs(data.songs);
       setAllAlbums(data.albums);
+      setIsLoading(false);
     };
     fetchData();
   }, []);
@@ -108,6 +119,9 @@ export const SongContextProvider = ({ children }: { children: ReactNode }) => {
         updateTheWholePlaylist,
         configPlaylistOpen,
         toggleConfigPlaylistModal,
+        playingIndex,
+        setPlayingIndex,
+        isLoading,
       }}
     >
       {children}
