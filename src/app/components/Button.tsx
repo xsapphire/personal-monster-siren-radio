@@ -68,10 +68,15 @@ export const PrimaryButton = ({
   );
 };
 
-const StyledIconButton = styled.button<{ $hasTitle: boolean; $theme: Theme }>`
+const StyledIconButton = styled.button<{
+  $hasTitle: boolean;
+  $theme: Theme;
+  disabled?: boolean;
+}>`
   background: none;
   border: none;
-  color: ${({ $theme }) => themeColors[$theme].icon};
+  color: ${({ $theme, disabled }) =>
+    disabled ? themeColors[$theme].disabled : themeColors[$theme].icon};
   font: inherit;
   cursor: pointer;
   border-radius: ${({ $hasTitle }) => ($hasTitle ? "4px" : "999px")};
@@ -81,7 +86,8 @@ const StyledIconButton = styled.button<{ $hasTitle: boolean; $theme: Theme }>`
   padding: ${({ $hasTitle }) => ($hasTitle ? "8px" : "0")};
 
   &:hover {
-    background-color: ${({ $theme }) => themeColors[$theme].hover};
+    background-color: ${({ $theme, disabled }) =>
+      disabled ? "transparent" : themeColors[$theme].hover};
   }
 
   display: flex;
@@ -103,7 +109,12 @@ export const IconButton = ({
     <StyledIconButton $theme={selectedTheme} $hasTitle={!!title} {...rest}>
       {icon}
       <span
-        style={{ fontSize: "16px", color: themeColors[selectedTheme].text }}
+        style={{
+          fontSize: "16px",
+          color: rest.disabled
+            ? themeColors[selectedTheme].disabled
+            : themeColors[selectedTheme].text,
+        }}
       >
         {title}
       </span>

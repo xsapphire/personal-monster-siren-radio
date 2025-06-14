@@ -4,8 +4,12 @@ import { ReactElement, useState } from "react";
 import { FiMenu, FiPlus, FiShuffle, FiTrash } from "react-icons/fi";
 import { IconButton, PrimaryButton } from "../components/Button";
 import { Dropdown } from "../components/Dropdown";
+import { FileSelector } from "../components/FileSelector";
 import { FlexBox } from "../components/FlexBox";
 import { Modal } from "../components/Modal";
+import { Spinner } from "../components/Spinner";
+import { useFileContext } from "../context/FileContext";
+import { FlyoutType, useFlyout } from "../context/FlyoutContext";
 import { usePlaylist } from "../context/SongContext";
 import { useTheme } from "../context/ThemeContext";
 import { themeColors } from "../themeColors";
@@ -16,12 +20,14 @@ export const MyPlayList = (): ReactElement => {
     myPlaylist,
     removeFromPlaylist,
     shufflePlaylist,
-    toggleConfigPlaylistModal,
     clearPlaylist,
     updateTheWholePlaylist,
     playingIndex,
     isLoading,
   } = usePlaylist();
+
+  const { openFlyout } = useFlyout();
+  const { importedList, clearSelection } = useFileContext();
 
   const { selectedTheme } = useTheme();
   const [openModal, setOpenModal] = useState<boolean>(false);
@@ -43,6 +49,7 @@ export const MyPlayList = (): ReactElement => {
         $center="xy"
         style={{ width: "50%", height: "calc(100vh - 50px)" }}
       >
+        <Spinner />
         <p>Loading song data...</p>
       </FlexBox>
     );
@@ -53,16 +60,31 @@ export const MyPlayList = (): ReactElement => {
       style={{ width: "50%", padding: "16px", height: "calc(100vh - 50px)" }}
     >
       {openModal && (
-        <Modal title="Import Playlist" onClose={() => setOpenModal(false)}>
-          <p>Select a JSON file</p>
+        <Modal
+          title="Import Playlist"
+          onClose={() => setOpenModal(false)}
+          onConfirm={() => {
+            updateTheWholePlaylist(importedList);
+            setOpenModal(false);
+            clearSelection();
+          }}
+        >
+          <FileSelector />
         </Modal>
       )}
-
       <FlexBox $spaceBetween $center="y" style={{ padding: "32px 16px" }}>
         <h2>My Playlist</h2>
         <FlexBox>
-          <IconButton onClick={toggleConfigPlaylistModal} icon={<FiPlus />} />
-          <IconButton onClick={shufflePlaylist} icon={<FiShuffle />} />
+          <IconButton
+            disabled={playingIndex > 0}
+            onClick={() => openFlyout(FlyoutType.SONG_LIST)}
+            icon={<FiPlus />}
+          />
+          <IconButton
+            disabled={playingIndex > 0}
+            onClick={shufflePlaylist}
+            icon={<FiShuffle />}
+          />
           <Dropdown
             options={[
               {
@@ -96,7 +118,7 @@ export const MyPlayList = (): ReactElement => {
               },
             ]}
           >
-            <IconButton icon={<FiMenu />} />
+            <IconButton icon={<FiMenu />} disabled={playingIndex > 0} />
           </Dropdown>
         </FlexBox>
       </FlexBox>
@@ -133,8 +155,8 @@ export const MyPlayList = (): ReactElement => {
                 key={playlistItem.cid}
               >
                 <p style={{ fontWeight: "bold" }}>{songName}</p>
-
                 <IconButton
+                  disabled={playingIndex > 0}
                   onClick={() => removeFromPlaylist(playlistItem.cid)}
                   icon={<FiTrash />}
                   title="Remove"
@@ -147,7 +169,7 @@ export const MyPlayList = (): ReactElement => {
       ) : (
         <FlexBox $center="xy" $direction="column" style={{ padding: "16px" }}>
           <p>No saved playlist found.</p>
-          <PrimaryButton onClick={toggleConfigPlaylistModal}>
+          <PrimaryButton onClick={() => openFlyout(FlyoutType.SONG_LIST)}>
             Build Your Playlist
           </PrimaryButton>
         </FlexBox>

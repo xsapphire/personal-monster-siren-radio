@@ -1,15 +1,17 @@
 "use client";
 import Image from "next/image";
 import { ReactElement, useEffect, useRef, useState } from "react";
-import { FiAirplay, FiPause, FiPlay, FiRewind } from "react-icons/fi";
-import { IconButton } from "../components/Button";
+import { FiMusic, FiPause, FiPlay, FiStopCircle } from "react-icons/fi";
+import { IconButton, PrimaryButton } from "../components/Button";
 import { FlexBox } from "../components/FlexBox";
+import { Spinner } from "../components/Spinner";
 import { usePlaylist } from "../context/SongContext";
 
 export const Player = (): ReactElement => {
   const { allSongs, allAlbums, myPlaylist, playingIndex, setPlayingIndex } =
     usePlaylist();
 
+  const [isFetchingSong, setIsFetchingSong] = useState<boolean>(false);
   const [curAudioSrc, setCurAudioSrc] = useState<string>("");
   const [albumCoverUrl, setAlbumCoverUrl] = useState<string>("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -17,6 +19,7 @@ export const Player = (): ReactElement => {
 
   useEffect(() => {
     const fetchSongDetail = async () => {
+      setIsFetchingSong(true);
       const songDetail = await fetch(
         `/api/song/${myPlaylist[playingIndex - 1].cid}`
       );
@@ -27,6 +30,7 @@ export const Player = (): ReactElement => {
           ""
       );
       setCurAudioSrc(detail.sourceUrl);
+      setIsFetchingSong(false);
     };
 
     if (playingIndex > 0) {
@@ -50,9 +54,15 @@ export const Player = (): ReactElement => {
     >
       <h2 style={{ padding: "16px 32px" }}>Now Playing</h2>
 
-      {albumCoverUrl ? (
-        <Image alt="cover" src={albumCoverUrl} width={300} height={300}></Image>
+      {isFetchingSong ? (
+        <FlexBox $center="xy" style={{ height: "100px" }}>
+          <Spinner />
+          <p>Fetching song...</p>
+        </FlexBox>
+      ) : albumCoverUrl ? (
+        <Image alt="cover" src={albumCoverUrl} width={300} height={300} />
       ) : null}
+
       <h3 style={{ marginTop: "8px" }}>
         {playingIndex > 0
           ? allSongs?.find(
@@ -80,38 +90,47 @@ export const Player = (): ReactElement => {
       )}
 
       <FlexBox $spaceBetween style={{ marginTop: "16px" }}>
-        <IconButton
-          onClick={() => {
-            setPlayingIndex(1);
-          }}
-          disabled={playingIndex > 0}
-          icon={<FiAirplay />}
-          title="Play List"
-        />
+        {playingIndex === 0 && (
+          <PrimaryButton
+            onClick={() => {
+              setPlayingIndex(1);
+            }}
+            disabled={playingIndex > 0}
+          >
+            <FlexBox $center="y">
+              <FiMusic /> Play Music
+            </FlexBox>
+          </PrimaryButton>
+        )}
 
-        <IconButton
-          onClick={() => {
-            if (hasPaused) {
-              audioRef.current?.play();
-              setHasPaused(false);
-              return;
-            }
+        {playingIndex > 0 && (
+          <>
+            <IconButton
+              onClick={() => {
+                if (hasPaused) {
+                  audioRef.current?.play();
+                  setHasPaused(false);
+                  return;
+                }
 
-            audioRef.current?.pause();
-            setHasPaused(true);
-          }}
-          icon={hasPaused ? <FiPlay /> : <FiPause />}
-          title={hasPaused ? "Resume" : "Pause"}
-        />
+                audioRef.current?.pause();
+                setHasPaused(true);
+              }}
+              icon={hasPaused ? <FiPlay /> : <FiPause />}
+              title={hasPaused ? "Resume" : "Pause"}
+            />
 
-        <IconButton
-          onClick={() => {
-            setPlayingIndex(0);
-            setCurAudioSrc("");
-          }}
-          icon={<FiRewind />}
-          title="Start Over"
-        />
+            <IconButton
+              onClick={() => {
+                setPlayingIndex(0);
+                setCurAudioSrc("");
+                setAlbumCoverUrl("");
+              }}
+              icon={<FiStopCircle />}
+              title="Terminate"
+            />
+          </>
+        )}
       </FlexBox>
     </FlexBox>
   );

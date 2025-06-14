@@ -1,10 +1,10 @@
 "use client";
 
-import { ReactElement } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import { FiMinus, FiPlus } from "react-icons/fi";
 import styled from "styled-components";
 import { FlexBox } from "../components/FlexBox";
-import { Flyout } from "../components/Flyout";
+import { Search } from "../components/Searchbar";
 import { usePlaylist } from "../context/SongContext";
 import { Theme, useTheme } from "../context/ThemeContext";
 import { themeColors } from "../themeColors";
@@ -28,41 +28,64 @@ export const SongList = (): ReactElement => {
     usePlaylist();
   const { selectedTheme } = useTheme();
 
+  const [searchedText, setSearchedText] = useState<string>("");
+
+  const [songList, setSongList] = useState(allSongs);
+
+  useEffect(() => {
+    console.log("searchedText changed:", searchedText);
+    if (searchedText.trim() === "") {
+      setSongList(allSongs);
+      return;
+    }
+
+    const filteredSongs = allSongs.filter((song) =>
+      song.name.toLowerCase().includes(searchedText)
+    );
+
+    console.log("Filtered songs:", filteredSongs);
+
+    setSongList(filteredSongs);
+  }, [searchedText, allSongs, allAlbums]);
+
   return allSongs && allAlbums ? (
-    <Flyout title="Build Your Playlist">
-      <FlexBox $gap="16px" $direction="column">
-        {allSongs.map((song) => {
-          const isInPlaylist = myPlaylist.some((item) => item.cid === song.cid);
+    <FlexBox $gap="16px" $direction="column">
+      <Search
+        setSearchedText={setSearchedText}
+        placeholderText="Search songs by name"
+      />
 
-          return (
-            <SongListItem
-              $theme={selectedTheme}
-              $center="y"
-              $gap="16px"
-              $isInPlaylist={isInPlaylist}
-              key={song.cid}
-              onClick={() => {
-                if (isInPlaylist) {
-                  removeFromPlaylist(song.cid);
-                  return;
-                }
+      {songList.map((song) => {
+        const isInPlaylist = myPlaylist.some((item) => item.cid === song.cid);
 
-                addToPlaylist(song.cid);
-              }}
-            >
-              {isInPlaylist ? <FiMinus /> : <FiPlus />}
+        return (
+          <SongListItem
+            $theme={selectedTheme}
+            $center="y"
+            $gap="16px"
+            $isInPlaylist={isInPlaylist}
+            key={song.cid}
+            onClick={() => {
+              if (isInPlaylist) {
+                removeFromPlaylist(song.cid);
+                return;
+              }
 
-              <div>
-                <h3>{song.name}</h3>
-                <p>
-                  {allAlbums.find((album) => album.cid === song.albumCid)?.name}
-                </p>
-              </div>
-            </SongListItem>
-          );
-        })}
-      </FlexBox>
-    </Flyout>
+              addToPlaylist(song.cid);
+            }}
+          >
+            {isInPlaylist ? <FiMinus /> : <FiPlus />}
+
+            <div>
+              <h3>{song.name}</h3>
+              <p>
+                {allAlbums.find((album) => album.cid === song.albumCid)?.name}
+              </p>
+            </div>
+          </SongListItem>
+        );
+      })}
+    </FlexBox>
   ) : (
     <p>Loading songs...</p>
   );

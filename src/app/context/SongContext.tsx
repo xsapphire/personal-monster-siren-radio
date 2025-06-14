@@ -8,14 +8,9 @@ import {
   useEffect,
   useState,
 } from "react";
-import { AlbumListItem, SongListItem } from "../type";
+import { AlbumListItem, MyPlayListItem, SongListItem } from "../type";
 
 const LOCAL_STORAGE_KEY = "custonm-arknights-playlist";
-
-export type MyPlayListItem = {
-  cid: string;
-  createDateTime: Date;
-};
 
 type SongContextType = {
   allSongs: SongListItem[];
@@ -29,9 +24,6 @@ type SongContextType = {
   clearPlaylist: () => void;
   updateTheWholePlaylist: (newPlaylist: MyPlayListItem[]) => void;
 
-  configPlaylistOpen: boolean;
-  toggleConfigPlaylistModal: () => void;
-
   playingIndex: number;
   setPlayingIndex: Dispatch<SetStateAction<number>>;
 
@@ -42,7 +34,6 @@ const SongContext = createContext<SongContextType | null>(null);
 
 export const SongContextProvider = ({ children }: { children: ReactNode }) => {
   const [playlist, setPlaylist] = useState<MyPlayListItem[]>([]);
-  const [configPlaylistOpen, setConfigPlaylistOpen] = useState<boolean>(false);
 
   const [allSongs, setAllSongs] = useState<SongListItem[]>([]);
   const [allAlbums, setAllAlbums] = useState<AlbumListItem[]>([]);
@@ -98,10 +89,6 @@ export const SongContextProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const toggleConfigPlaylistModal = () => {
-    setConfigPlaylistOpen((prev) => !prev);
-  };
-
   const updateTheWholePlaylist = (newPlaylist: MyPlayListItem[]) => {
     setPlaylist(newPlaylist);
   };
@@ -117,8 +104,6 @@ export const SongContextProvider = ({ children }: { children: ReactNode }) => {
         shufflePlaylist,
         clearPlaylist,
         updateTheWholePlaylist,
-        configPlaylistOpen,
-        toggleConfigPlaylistModal,
         playingIndex,
         setPlayingIndex,
         isLoading,

@@ -8,6 +8,7 @@ export type ThemeColor = {
   border: string;
   hover: string;
   icon: string;
+  disabled: string;
 };
 
 export const themeColors: {
@@ -24,6 +25,7 @@ export const themeColors: {
     border: "#EEEEEE",
     hover: "rgba(0, 0, 0, 0.1)",
     icon: "#888888",
+    disabled: "#CCCCCC",
   },
   dark: {
     primaryBackground: "#000000",
@@ -35,5 +37,6 @@ export const themeColors: {
     border: "#323232",
     hover: "rgba(255, 255, 255, 0.3)",
     icon: "#FFFFFF",
+    disabled: "#CCCCCC",
   },
 };
