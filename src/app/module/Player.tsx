@@ -39,12 +39,17 @@ export const Player = (): ReactElement => {
   }, [playingIndex]);
 
   useEffect(() => {
-    console.log("Current audio source changed:", curAudioSrc);
-    console.log("Audio ref:", audioRef.current);
     if (audioRef.current && curAudioSrc) {
       audioRef.current.play();
     }
   }, [audioRef.current, curAudioSrc]);
+
+  const resetPlayer = () => {
+    setPlayingIndex(0);
+    setCurAudioSrc("");
+    setAlbumCoverUrl("");
+    audioRef.current = null;
+  };
 
   return (
     <FlexBox
@@ -77,13 +82,13 @@ export const Player = (): ReactElement => {
           ref={audioRef}
           src={curAudioSrc}
           onEnded={() => {
+            audioRef.current?.pause();
+
             if (playingIndex === myPlaylist.length) {
-              console.log("No more songs to play");
+              resetPlayer();
               return;
             }
 
-            console.log("Song ended");
-            audioRef.current?.pause();
             setPlayingIndex((prevIndex) => prevIndex + 1);
           }}
         />
@@ -112,7 +117,6 @@ export const Player = (): ReactElement => {
                   setHasPaused(false);
                   return;
                 }
-
                 audioRef.current?.pause();
                 setHasPaused(true);
               }}
@@ -121,11 +125,7 @@ export const Player = (): ReactElement => {
             />
 
             <IconButton
-              onClick={() => {
-                setPlayingIndex(0);
-                setCurAudioSrc("");
-                setAlbumCoverUrl("");
-              }}
+              onClick={resetPlayer}
               icon={<FiStopCircle />}
               title="Terminate"
             />
